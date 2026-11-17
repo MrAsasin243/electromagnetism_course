@@ -4,6 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const nav = $('courseNav'), page = $('topicPage'), welcome = $('welcomePanel');
   let activeIndex = 0;
+  let tocObserver = null;
   const progressKey = 'em-course-completed-v1';
   let completed = new Set();
   try { completed = new Set(JSON.parse(localStorage.getItem(progressKey) || '[]')); } catch(e) {}
@@ -63,7 +64,9 @@
     welcome.hidden=true;page.hidden=false;
     $('breadcrumbs').innerHTML=`${escapeHtml(t.chapter)} <span>/</span> ${escapeHtml(t.title)}`;
     const sections=t.sections||[];
-    const toc=sections.map((s,i)=>`<a class="toc-link" href="#sec-${escapeHtml(s.id||i)}">${String(i+1).padStart(2,'0')} · ${escapeHtml(s.title)}</a>`).join('');
+    let toc=sections.map((s,i)=>`<a class="toc-link" href="#sec-${escapeHtml(s.id||i)}">${String(i+1).padStart(2,'0')} · ${escapeHtml(s.title)}</a>`).join('');
+    if(t.examples?.length)toc+=`<a class="toc-link" href="#examples">EX · Разобранные задачи</a>`;
+    if(t.quiz?.length)toc+=`<a class="toc-link" href="#self-check">? · Проверка знаний</a>`;
     let body='';
     if(t.definition)body+=`<div class="definition"><div class="definition-label">Ключевая идея</div>${inline(t.definition)}</div>`;
     if(t.visuals?.length)body+=t.visuals.map(visualMarkup).join('');
@@ -74,10 +77,27 @@
     const prev=activeIndex>0?topics[activeIndex-1]:null,next=activeIndex<topics.length-1?topics[activeIndex+1]:null;
     body+=`<div class="page-navigation">${prev?`<button data-go="${activeIndex-1}"><span>← ПРЕДЫДУЩАЯ ТЕМА</span>${escapeHtml(prev.title)}</button>`:'<span></span>'}${next?`<button class="next" data-go="${activeIndex+1}"><span>СЛЕДУЮЩАЯ ТЕМА →</span>${escapeHtml(next.title)}</button>`:''}</div>`;
     if(window.MathJax?.typesetClear)window.MathJax.typesetClear([page]);
-    page.innerHTML=`<header class="topic-header"><div class="chapter-kicker">${escapeHtml(t.chapter)} · §${escapeHtml(String(t.number||''))}</div><h1>${escapeHtml(t.title)}</h1><p class="topic-lead">${inline(t.lead||'')}</p><div class="topic-meta"><span class="meta-chip">${escapeHtml(t.level||'Базовый уровень')}</span><span class="meta-chip">Система СИ</span><span class="meta-chip">${sections.length} разделов</span></div></header><div class="learning-grid"><div class="topic-body">${body}</div><aside class="right-rail"><div class="rail-card"><div class="rail-title">На этой странице</div>${toc}<a class="toc-link" href="#examples">Разобранные задачи</a><a class="toc-link" href="#self-check">Проверка знаний</a></div><div class="rail-card"><div class="rail-title">Результаты изучения</div><ul class="objectives">${(t.objectives||[]).map(x=>`<li>${inline(x)}</li>`).join('')}</ul></div><div class="rail-card"><button class="primary-button" id="markComplete">${completed.has(t.id)?'✓ Изучено':'Отметить изученным'}</button></div></aside></div>`;
-    renderNav($('topicSearch').value);updateProgress();attachPageEvents();initVisuals();
+    const objectives=(t.objectives||[]).length?`<div class="rail-card"><div class="rail-title">Результаты изучения</div><ul class="objectives">${t.objectives.map(x=>`<li>${inline(x)}</li>`).join('')}</ul></div>`:'';
+    page.innerHTML=`<header class="topic-header"><div class="chapter-kicker">${escapeHtml(t.chapter)} · §${escapeHtml(String(t.number||''))}</div><h1>${escapeHtml(t.title)}</h1><p class="topic-lead">${inline(t.lead||'')}</p><div class="topic-meta"><span class="meta-chip">${escapeHtml(t.level||'Базовый уровень')}</span><span class="meta-chip">Система СИ</span><span class="meta-chip">${sections.length} разделов</span></div></header><div class="learning-grid"><div class="topic-body">${body}</div><aside class="right-rail"><div class="rail-card"><div class="rail-title">На этой странице</div>${toc}</div>${objectives}<div class="rail-card"><button class="primary-button" id="markComplete">${completed.has(t.id)?'✓ Изучено':'Отметить изученным'}</button></div></aside></div>`;
+    renderNav($('topicSearch').value);updateProgress();attachPageEvents();activateToc();initVisuals();
     if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise([page]).catch(err=>console.error('MathJax:',err));
     window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function activateToc(){
+    if(tocObserver){tocObserver.disconnect();tocObserver=null}
+    const links=[...page.querySelectorAll('.toc-link[href^="#"]')];
+    if(!links.length || !('IntersectionObserver' in window))return;
+    const targets=links.map(a=>$(decodeURIComponent(a.getAttribute('href').slice(1)))).filter(Boolean);
+    if(!targets.length)return;
+    const byId=new Map(links.map(a=>[decodeURIComponent(a.getAttribute('href').slice(1)),a]));
+    tocObserver=new IntersectionObserver(entries=>{
+      const visible=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);
+      if(!visible.length)return;
+      links.forEach(a=>{a.classList.remove('active');a.removeAttribute('aria-current')});
+      const active=byId.get(visible[0].target.id);
+      if(active){active.classList.add('active');active.setAttribute('aria-current','location')}
+    },{rootMargin:'-78px 0px -68% 0px',threshold:0});
+    targets.forEach(target=>tocObserver.observe(target));
   }
   function attachPageEvents(){
     page.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showTopic(Number(b.dataset.go))));
