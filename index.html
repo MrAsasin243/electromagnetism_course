@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Интерактивный учебный курс по электричеству и магнетизму">
+  <title>Электричество и магнетизм — учебный курс</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        processEscapes: true,
+      },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+      startup: { typeset: false }
+    };
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">E<span>·</span>M</div>
+        <div>
+          <div class="brand-title">Электричество<br>и магнетизм</div>
+          <div class="brand-subtitle">Интерактивный курс · SI</div>
+        </div>
+      </div>
+      <div class="sidebar-tools">
+        <label class="search-wrap" for="topicSearch">
+          <span aria-hidden="true">⌕</span>
+          <input id="topicSearch" type="search" placeholder="Найти тему…" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+      </div>
+      <nav id="courseNav" class="course-nav" aria-label="Содержание курса"></nav>
+      <div class="sidebar-bottom">
+        <div class="progress-caption"><span>Изучено</span><strong id="progressValue">0%</strong></div>
+        <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
+        <a class="prompt-link" href="docs/PROMPT_TEMPLATE.md" target="_blank" rel="noopener">Шаблон промта для новой темы ↗</a>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Открыть содержание">☰</button>
+        <div class="breadcrumbs" id="breadcrumbs">Курс <span>/</span> Введение</div>
+        <div class="topbar-actions">
+          <span class="mode-pill"><i></i> Учебный режим</span>
+          <button class="icon-button" id="fontSmaller" title="Уменьшить текст" aria-label="Уменьшить текст">A−</button>
+          <button class="icon-button" id="fontLarger" title="Увеличить текст" aria-label="Увеличить текст">A+</button>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section id="welcomePanel" class="welcome-panel" hidden>
+          <div class="eyebrow">УНИВЕРСИТЕТСКИЙ КУРС · ЭЛЕКТРОМАГНЕТИЗМ</div>
+          <h1>От электрического заряда<br><em>к электромагнитным явлениям</em></h1>
+          <p class="welcome-lead">Курс устроен как последовательный учебник: определения, физический смысл, выводы формул, интерактивные модели и задачи. Материал согласован с системой СИ.</p>
+          <div class="welcome-grid">
+            <div class="welcome-stat"><strong id="topicCount">7</strong><span>учебных страниц</span></div>
+            <div class="welcome-stat"><strong>SI</strong><span>система единиц</span></div>
+            <div class="welcome-stat"><strong>01</strong><span>электростатика</span></div>
+          </div>
+          <div class="welcome-actions"><button class="primary-button" id="startCourse">Начать изучение <span>→</span></button><a href="docs/README.md" target="_blank" rel="noopener">Как добавлять темы</a></div>
+        </section>
+        <article id="topicPage" class="topic-page" aria-live="polite"></article>
+        <footer class="page-footer">
+          <span>Учебный конспект · Электричество и магнетизм</span>
+          <span>Формулы приведены в системе СИ</span>
+        </footer>
+      </div>
+    </main>
+  </div>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <!-- Реестр содержимого. Каждая тема хранится в отдельном JS-файле. -->
+  <script src="content/00-introduction.js"></script>
+  <script src="content/01-electric-charge.js"></script>
+  <script src="content/02-electric-field.js"></script>
+  <script src="content/03-potential-work.js"></script>
+  <script src="content/04-field-in-matter.js"></script>
+  <script src="content/05-dielectrics.js"></script>
+  <script src="content/06-direct-current.js"></script>
+  <script src="assets/vendor/mathjax/tex-svg.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
